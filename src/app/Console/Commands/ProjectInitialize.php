@@ -25,16 +25,35 @@ class ProjectInitialize extends Command
      */
     public function handle()
     {
-        $this->call('migrate:fresh', [
-            '--force' => true,
-        ]);
+        // Only run migrate:fresh if there's a .fresh_init_flag file (set by first setup script)
+        // Otherwise, just migrate normally to preserve user data
+        $freshInitFlag = storage_path('.fresh_init_flag');
+
+        if (file_exists($freshInitFlag)) {
+            $this->info('🚀 Fresh initialization mode detected. Running migrate:fresh...');
+            $this->call('migrate:fresh', [
+                '--force' => true,
+            ]);
+            unlink($freshInitFlag);
+        } else {
+            $this->info('💾 Production mode: Running regular migrate (preserving data)...');
+            $this->call('migrate', [
+                '--force' => true,
+            ]);
+        }
+
         $this->call('shield:generate', [
             '--all' => true,
             '--panel' => 'admin',
         ]);
-        $this->call('db:seed', [
-            '--force' => true,
-        ]);
+
+        // Only seed if in fresh init mode
+        if (!file_exists($freshInitFlag)) {
+            $this->info('📦 Seeding database...');
+            $this->call('db:seed', [
+                '--force' => true,
+            ]);
+        }
 
         $this->call('filament:optimize-clear');
         $this->call('optimize:clear');

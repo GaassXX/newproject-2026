@@ -26,6 +26,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'name',
         'email',
         'password',
+        'preferred_currency',
+        'exchange_rate',
+        'exchange_rate_auto',
     ];
 
     /**
@@ -48,6 +51,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'exchange_rate' => 'decimal:6',
+            'exchange_rate_auto' => 'boolean',
         ];
     }
 
